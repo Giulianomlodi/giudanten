@@ -1,0 +1,242 @@
+I need to create a fully automated wallet analysis system based solely on data from hyperliquid API.
+
+The system must run exclusively on the Hyperliquid ecosystem.
+
+
+All history retrieved should be saved on a mongo db database.
+
+
+All steps must be automatable, schedulable, and export machine-readable data (JSON/CSV).
+
+Execution logic for the copy trades will be added in a future phase. For now, we just need to to create the wallet analysis with scoring, filtering, and portfolio generation.
+
+🧩 System Modules Overview
+✅ Module 1: Data Ingestion 
+🔗 Data Sources:
+
+
+Leaderboard: 
+
+GET request for leaderboard and to get wallets
+https://stats-data.hyperliquid.xyz/Mainnet/leaderboard
+
+Wallet Details:
+POST request to get all wallet specific data
+
+https://api.hyperliquid.xyz/info
+
+example call
+
+{
+"type": "clearinghouseState",
+"user": "0x162cc7c861ebd0c06b3d72319201150482518185"
+}
+
+
+
+Wallet address
+
+ROI (7-day, 30-day, all-time)
+
+Win rate
+
+Total number of trades
+
+Total PnL
+
+Recent trade history:
+
+Asset
+
+Type (long/short)
+
+Size (USD)
+
+Leverage
+
+PnL (%)
+
+Duration
+
+Timestamp
+
+✅ JSON Output Example:
+json
+Copy
+Edit
+{
+  "wallet": "0xabc123...",
+  "roi_7d": 6.2,
+  "roi_30d": 18.4,
+  "win_rate": 63.5,
+  "total_trades": 142,
+  "pnl_usd": 25400,
+  "trades": [
+    {
+      "asset": "BTC",
+      "type": "long",
+      "size_usd": 4500,
+      "leverage": 8,
+      "pnl_pct": 4.2,
+      "duration_min": 180,
+      "timestamp": "2025-04-08T14:32:00Z"
+    }
+  ]
+}
+✅ Module 2: Wallet Scoring Engine
+Use the following weights to calculate a score (0–100) per wallet:
+
+Metric	Weight
+ROI (30 days)	25%
+Win rate	15%
+Average PnL per trade	10%
+Average leverage	10%
+Estimated drawdown	15%
+Trading consistency	10%
+Trade frequency	5%
+Post-loss behavior	5%
+ROI trend (7d vs 30d)	5%
+⚠️ Penalize if average leverage > 20x
+
+✅ JSON Output Example:
+json
+Copy
+Edit
+{
+  "wallet": "0xabc123...",
+  "score": 86,
+  "components": {
+    "roi_30d": 23,
+    "win_rate": 12,
+    "pnl_per_trade": 9,
+    "leverage_avg": 7,
+    "drawdown": 13,
+    "consistency": 9,
+    "frequency": 4,
+    "post_loss": 4,
+    "roi_trend": 5
+  }
+}
+✅ Module 3: Qualification Filter
+Automatically filter wallets based on these criteria:
+
+At least 30 total trades
+
+ROI (30d) ≥ 5%
+
+Win rate ≥ 55%
+
+Estimated drawdown ≤ 25%
+
+Score ≥ 75
+
+✅ JSON Output Example:
+json
+Copy
+Edit
+{
+  "qualified_wallets": [
+    {
+      "wallet": "0xabc123...",
+      "score": 86,
+      "qualified": true,
+      "reason": "All metrics passed"
+    },
+    {
+      "wallet": "0xdef456...",
+      "score": 61,
+      "qualified": false,
+      "reason": "Score below 75"
+    }
+  ]
+}
+✅ Module 4: Behavioral Tagging Engine
+Auto-assign tags for strategy classification.
+
+🏷️ Tag Categories:
+Style: scalper, swing, trend_follower, range_trader
+
+Behavior: disciplined, aggressive, opportunistic, inactive
+
+Time Pattern: day_trader, night_trader, 24h_operator
+
+Time Zone: UTC_plus_X, UTC_minus_X
+
+Region: europe, north_america, south_america, asia, africa
+
+Asset Focus: btc_focused, eth_focused, altcoin_hunter, diversified
+
+Directional Bias:
+
+Simple: long_dominant, short_dominant, balanced_positioning
+
+Percent: long_XX_short_YY (e.g. long_74_short_26)
+
+✅ JSON Output Example:
+json
+Copy
+Edit
+{
+  "wallet": "0xabc123...",
+  "tags": {
+    "style": "swing",
+    "behavior": "disciplined",
+    "time_pattern": "day_trader",
+    "utc_zone": "UTC_plus_1",
+    "continent": "europe",
+    "asset_focus": "btc_focused",
+    "directional_bias": "long_dominant",
+    "direction_percent": "long_72_short_28"
+  }
+}
+✅ Module 5: Portfolio Constructor
+Select top 10 qualified wallets
+
+Ensure diversification across style, direction, region, and time zone
+
+✅ JSON Output Example:
+json
+Copy
+Edit
+{
+  "portfolio": [
+    {
+      "wallet": "0xabc123...",
+      "score": 86,
+      "tags": ["swing", "disciplined", "btc_focused", "europe"],
+      "copy_mode": "conservative"
+    },
+    {
+      "wallet": "0x789xyz...",
+      "score": 77,
+      "tags": ["scalper", "aggressive", "eth_focused", "asia"],
+      "copy_mode": "standard"
+    }
+  ]
+}
+✅ Module 6: Copy Mode Assignment
+Assign risk profile per wallet based on score:
+
+Mode	Score ≥	Max Leverage	Max Position Size
+Conservative	85	10x	2.5%
+Standard	75	15x	5%
+Aggressive	70	25x	10%
+✅ JSON Output Example:
+json
+Copy
+Edit
+{
+  "wallet": "0xabc123...",
+  "score": 86,
+  "assigned_mode": "conservative",
+  "limits": {
+    "max_leverage": 10,
+    "max_position_pct": 2.5
+  }
+}
+🔁 Automation Schedule
+Task	Frequency
+Data scraping	Every 12h
+Score + tag refresh	Every 24h
+Portfolio update	Every 24h
+Export formats: JSON + optional CSV

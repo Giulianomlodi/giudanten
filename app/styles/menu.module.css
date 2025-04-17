@@ -1,0 +1,99 @@
+.nav {
+  display: flex;
+  justify-content: center;
+}
+
+.menuList {
+  display: flex;
+  list-style: none;
+  gap: 30px;
+  align-items: center;
+  margin-inline-end: 20px;
+}
+
+.menuList li {
+  display: flex;
+  align-items: center;
+}
+
+.menuList a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #ffffff;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.menuList a:hover,
+.menuList a:active {
+  opacity: 0.7;
+}
+
+.socialIcons {
+  display: flex;
+  gap: 30px;
+}
+
+.socialIcons a {
+  font-size: 1.2rem;
+  color: #ffffff;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.socialIcons a:hover,
+.socialIcons a:active {
+  opacity: 0.7;
+}
+
+.dropdownList {
+  list-style: none;
+  padding: 0.5rem;
+  background: #0f183b;
+  border-radius: 8px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.308);
+  backdrop-filter: blur(7.3px);
+  -webkit-backdrop-filter: blur(7.3px);
+  width: 260px;
+}
+
+.dropdownList li {
+  padding: 0.5rem;
+}
+
+.dropdownList a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.dropdownList a:hover {
+  opacity: 0.7;
+}
+
+.hideOnMobile {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .hideOnMobile {
+    display: none; /* or inline, depending on your layout */
+  }
+}
+
+@media (max-width: 720px) {
+  .menuList {
+    flex-direction: column;
+  }
+
+  .dropdownList {
+    list-style: none;
+    padding: 0.5rem;
+    background: #0f183b;
+    border-radius: 8px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.308);
+    backdrop-filter: blur(7.3px);
+    -webkit-backdrop-filter: blur(7.3px);
+    width: 260px;
+  }
+}

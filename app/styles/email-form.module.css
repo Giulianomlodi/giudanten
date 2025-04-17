@@ -1,0 +1,82 @@
+.wrapper {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 0 auto;
+  gap: 100px;
+  padding-inline: 180px;
+  padding-block: 120px;
+  background-color: #253031;
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding-inline: 20px;
+    padding-block: 50px;
+    text-align: center;
+  }
+}
+
+.boldyno {
+  font-weight: 700;
+  color: #fff;
+  mix-blend-mode: difference;
+}
+
+.sideElementLeft {
+  /* Adjust this value to change the width of the side elements */
+  max-width: 750px;
+}
+.sideElementLeft h1 {
+  /* Adjust this value to change the width of the side elements */
+  font-size: 86px;
+  font-weight: 800;
+  text-align: left;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1.2em;
+  mix-blend-mode: difference;
+}
+
+@media (max-width: 768px) {
+  .sideElementLeft h1 {
+    font-size: 40px;
+    text-align: center;
+  }
+}
+.sideElementRight {
+  align-self: flex-end;
+  width: 350px;
+}
+.sideElementRight p {
+  flex: 0 0 200px; /* Adjust this value to change the width of the side elements */
+  /* Add any additional styles for the side elements here */
+  font-size: 20px;
+  font-weight: 400;
+  text-align: right;
+  margin-top: -170px;
+  color: #fff;
+  mix-blend-mode: difference;
+}
+
+@media (max-width: 768px) {
+  .sideElementRight p {
+    margin-top: 0;
+    text-align: center;
+  }
+}
+
+.centerElement {
+  flex-grow: 1;
+  margin-top: 90px;
+}
+
+@media (max-width: 768px) {
+  .centerElement {
+    margin-top: -50px;
+  }
+}

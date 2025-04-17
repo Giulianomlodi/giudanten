@@ -1,0 +1,46 @@
+.VideoSection {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: white;
+  position: relative;
+}
+
+.VideoBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+.Overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.631);
+  z-index: 0;
+}
+
+.Title {
+  font-size: 50px;
+  font-weight: bold;
+  font-family: "Montserrat", sans-serif;
+  text-align: center;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .Title {
+    font-size: 40px;
+    padding-inline: 30px;
+    text-transform: uppercase;
+  }
+}

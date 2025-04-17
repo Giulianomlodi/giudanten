@@ -1,0 +1,240 @@
+.nftContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  padding-inline: 120px;
+  padding-block: 120px;
+  gap: 120px;
+  background-color: #253031;
+}
+
+@media (max-width: 768px) {
+  .nftContainer {
+    flex-direction: column;
+    gap: 50px;
+    padding-inline: 20px;
+    text-align: center;
+    padding-block: 50px;
+    margin-top: -1px;
+  }
+}
+
+.leftArea {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+}
+
+.containerLeftPrev {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding-block: 20px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .containerLeftPrev {
+    gap: 10px;
+  }
+}
+
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  white-space: nowrap;
+}
+
+.inputRow label {
+  margin-right: 10px;
+  white-space: no-wrap;
+}
+
+.previewBox {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+}
+
+.mintButton {
+  padding: 10px 25px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 11px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .mintButton {
+    margin-top: -30px;
+    margin-bottom: 10px;
+    align-self: center;
+  }
+}
+
+.mintButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.graffitiGrid {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  gap: 2px;
+  width: 400px;
+  height: 400px;
+  position: relative;
+  background-image: url("/graffiti1/ImgToCrop.png");
+  background-size: cover;
+  border-radius: 10px;
+}
+
+.graffitiSection {
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: background-color 0.3s;
+  cursor: pointer;
+}
+
+.graffitiSection.selected {
+  background-color: rgba(0, 123, 255, 0.8);
+}
+
+.titleContainer {
+  font-size: 50px;
+  font-weight: 800;
+  color: #fff;
+  mix-blend-mode: difference;
+}
+
+.descContainer {
+  font-size: 20px;
+  font-weight: 400;
+  max-width: 400px;
+  color: #fff;
+  mix-blend-mode: difference;
+}
+
+.input {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.previewBox {
+  width: 200px;
+  height: 200px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.mintButtonDisabled {
+  opacity: 0.5;
+  pointer-events: none;
+  position: relative;
+}
+
+.connectWalletText {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 20px;
+}
+
+.label {
+  font-weight: bold;
+  margin-right: 10px;
+  color: #fff;
+  mix-blend-mode: difference;
+}
+
+.inputWithIcons {
+  display: flex;
+  align-items: center;
+  border: 1px solid #000;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.input {
+  padding: 8px;
+  border: none;
+  text-align: center;
+  font-size: 16px;
+  width: 60px;
+}
+
+.iconButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+  background-color: #000;
+  color: #fff;
+  mix-blend-mode: difference;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.decrementButton {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.incrementButton {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.iconMinus,
+.iconPlus {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.iconButton:hover {
+  background-color: #e0e0e0;
+}
+
+.walletPopup {
+  background-color: #fff;
+  padding-inline: 40px;
+  padding-block: 20px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}

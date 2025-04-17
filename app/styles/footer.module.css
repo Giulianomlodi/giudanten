@@ -1,0 +1,42 @@
+.footer {
+  width: 100%;
+  background: #01000b;
+  color: #fff;
+  padding: 1rem;
+  font-size: 14px;
+}
+
+.footerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.footerLeft,
+.footerRight {
+  flex: 1 1 100%;
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+@media (min-width: 768px) {
+  .footerLeft {
+    flex: 1;
+    text-align: left;
+  }
+
+  .footerRight {
+    flex: 1;
+    text-align: right;
+  }
+}
+
+.footerRight a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.footerRight a:hover {
+  text-decoration: underline;
+}

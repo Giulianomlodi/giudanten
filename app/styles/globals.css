@@ -1,0 +1,28 @@
+html,
+body {
+  background-color: #ebeadf !important;
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+p {
+  color: rgba(5, 3, 26, 0.9) !important;
+}
+
+@media (min-width: 720px) {
+  .burger-menu {
+    display: none;
+  }
+}
