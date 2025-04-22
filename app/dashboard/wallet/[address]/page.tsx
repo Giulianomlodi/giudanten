@@ -49,6 +49,8 @@ interface WalletDetail {
         asset_focus?: string;
         directional_bias?: string;
         direction_percent?: string;
+        profit_orientation?: string;
+        market_sessions?: string;
     };
     positions?: {
         coin: string;

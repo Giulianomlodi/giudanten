@@ -48,6 +48,8 @@ export interface ITags {
   asset_focus: AssetFocus;
   directional_bias: DirectionalBias;
   direction_percent: string; // e.g., long_74_short_26
+  profit_orientation?: string; // Aggiunta questa proprietà
+  market_sessions?: string; // Aggiunta anche questa proprietà
 }
 
 // Define type for WalletTag document

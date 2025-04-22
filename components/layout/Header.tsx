@@ -1,32 +1,27 @@
+"use client";
 import React from "react";
 import styles from "@/app/styles/header.module.css";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import Image from "next/image"; // Add this import
-
-
+import Image from "next/image";
 
 const ClientSideMenu = dynamic(() => import("./ClientSideMenu"), {
   ssr: false
 });
 
-function Header() {
+const Header = () => {
   return (
-    <header className={styles.headerWrapper}>
-      <div className={styles.stickyHeader}>
-        <div className={styles.leftArea}>
-          <span className={styles.LogoClass}>
-            <Link scroll={true} href="/">
-              <Image src="/images/Logo.png" alt="Logo" width={75} height={75} />
-            </Link>
-          </span>
-        </div>
-        <div className={styles.rightArea}>
-          <ClientSideMenu />
-        </div>
+    <header className="bg-black text-white p-4">
+      <div className="container mx-auto flex justify-between items-center">
+        <Link href="/">
+          <div className="flex items-center">
+            <h1 className="text-xl font-bold">Hyper Boops</h1>
+          </div>
+        </Link>
+        <ClientSideMenu />
       </div>
     </header>
   );
-}
+};
 
 export default Header;

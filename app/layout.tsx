@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "@rainbow-me/rainbowkit/styles.css";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import { Toaster } from "@/components/ui/toaster";
 import { Inter } from 'next/font/google';
 
 const inter = Inter({
@@ -14,42 +10,28 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Hyper Boops',
   description: 'Hyper Boops',
-  openGraph: {
-    title: 'Hyper Boops',
-    description: 'Hyper Boops',
-    url: '',
-    siteName: 'Hyper Boops',
-    images: [
-      {
-        url: '/images/Logo.png',
-        width: 1200,
-        height: 630,
-        alt: 'Hyper Boops',
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Hyper Boops',
-    description: 'Hyper Boops',
-    images: ['/images/Logo.png'],
-    creator: '@hyperboops',
-  },
 };
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
-      <body>
-        {/* Remove any provider wrappers related to wagmi */}
-        {children}
+      <body className={inter.className}>
+        <header className="bg-black text-white p-4">
+          <div className="container mx-auto">
+            <h1 className="text-xl font-bold">Hyper Boops - Test Header</h1>
+          </div>
+        </header>
+        <main className="min-h-screen">{children}</main>
+        <footer className="bg-black text-white p-4 mt-auto">
+          <div className="container mx-auto">
+            <p className="text-center">© 2023 Hyper Boops - Test Footer</p>
+          </div>
+        </footer>
       </body>
     </html>
-  )
+  );
 }

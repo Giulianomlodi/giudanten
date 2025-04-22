@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { useAccount, useWriteContract, useReadContract, useBalance } from 'wagmi';
+// Aggiungi le importazioni mancanti
+import { useState, useEffect } from 'react';
+import { useAccount, useReadContract, useWriteContract, useWatchContractEvent } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Toast from '../../layout/Toast';
 import { abi } from '@/contract-abi';

@@ -77,7 +77,7 @@ const BoopFartLeaderboard = () => {
         address: CONTRACT_ADDRESS,
         abi,
         eventName: 'TokenFart',
-        onLogs(logs) {
+        onLogs(logs: any[]) {
             try {
                 // Check if the event was triggered by the current user
                 const event = logs[0];

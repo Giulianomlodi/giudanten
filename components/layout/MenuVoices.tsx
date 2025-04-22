@@ -12,100 +12,33 @@ interface MenuVoicesProps {
   onItemClick: () => void;
 }
 
-const MenuVoices: React.FC<MenuVoicesProps> = ({ onItemClick }) => {
-  const handleClick = () => {
-    onItemClick();
-  };
+// Questo è un componente di test temporaneo che sostituisce MenuVoices originale
+// per verificare se è la causa del problema delle pagine bianche
 
+"use client";
+import React from "react";
+import Link from "next/link";
+import styles from "@/app/styles/menu.module.css";
+
+interface MenuVoicesProps {
+  onItemClick?: () => void;
+}
+
+const MenuVoices: React.FC<MenuVoicesProps> = ({ onItemClick = () => {} }) => {
   return (
-    <nav className={styles.nav}>
-      <NavigationMenu>
-        <NavigationMenuList className={styles.menuList}>
-          <NavigationMenuItem className={styles.hideOnMobile}>
-            <Link href="/" onClick={handleClick} className={styles.hideOnMobile}>
-              Home
-            </Link>
-
-          </NavigationMenuItem>
-          <NavigationMenuItem className={styles.hideOnMobile}>
-            <Link href="/fart-your-boop" onClick={handleClick} className={styles.hideOnMobile}>
-              Fart your Boop
-            </Link>
-
-          </NavigationMenuItem>
-
-
-
-
-          <NavigationMenuItem className={styles.hideOnMobile}>
-            <Link href="/profile" onClick={handleClick} className={styles.hideOnMobile}>
-              Profile
-            </Link>
-
-          </NavigationMenuItem>
-
-
-
-          {/* <NavigationMenuItem className={styles.hideOnMobile}>
-            <Link target="_blank" href="https://flipbookpdf.net/web/site/6b98acfe2183ea5e2990ee549025974efddd7f5b202412.pdf.html" onClick={handleClick} className={styles.hideOnMobile}>
-              Fumetto 2
-            </Link>
-
-          </NavigationMenuItem> */}
-
-          <NavigationMenuItem className={styles.socialIcons}>
-            <a
-              href="https://x.com/hyperboops"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={onItemClick}
-            >
-              <FaXTwitter />
-            </a>
-
-            <a
-              href="https://discord.gg/eNepjYv7kS"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={onItemClick}
-            >
-              <FaDiscord />
-            </a>
-            <a
-              href=""
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={onItemClick}
-              className="flex items-center"
-            >
-              {/* <div className="w-[1em] h-[1em] relative">
-                <Image
-                  src="/MagicEden.png"
-                  alt="Magic Eden"
-                  fill
-                  style={{ objectFit: 'contain' }}
-                />
-              </div> */}
-            </a>
-            {/* <a
-              href="https://dexscreener.com/apechain/0x735de94d0b805a41e81a58092852516559ac9069"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={onItemClick}
-              className="flex items-center"
-            >
-              <div className="w-[1em] h-[1em] relative">
-                <Image
-                  src="/DexScreen.png"
-                  alt="DexScreener"
-                  fill
-                  style={{ objectFit: 'contain' }}
-                />
-              </div>
-            </a> */}
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
+    <nav className={styles.nav || "flex space-x-4"}>
+      <ul className={styles.menuList || "flex space-x-4"}>
+        <li>
+          <Link href="/" onClick={onItemClick} className="text-white hover:text-gray-300">
+            Home
+          </Link>
+        </li>
+        <li>
+          <Link href="/test-simple" onClick={onItemClick} className="text-white hover:text-gray-300">
+            Test Semplice
+          </Link>
+        </li>
+      </ul>
     </nav>
   );
 };

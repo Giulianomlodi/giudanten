@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-export default function Dashboard() {
+// Rinominato da Dashboard a Home per evitare confusione con il dashboard/page.tsx
+export default function Home() {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -119,37 +120,172 @@ export default function Dashboard() {
     setLoading(true);
 
     try {
+      // Step 1: Ingesting data
       setStatus('Step 1/5: Ingesting data...');
-      await fetch('/api/ingest', { method: 'POST' });
+      const controller1 = new AbortController();
+      const timeoutId1 = setTimeout(() => controller1.abort(), 180000); // 3 minuti timeout
+      
+      try {
+        const ingestResponse = await fetch('/api/ingest', { 
+          method: 'POST',
+          signal: controller1.signal,
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        
+        clearTimeout(timeoutId1);
+        
+        if (!ingestResponse.ok) {
+          let errorMessage = `Ingest API error: ${ingestResponse.status} ${ingestResponse.statusText}`;
+          
+          try {
+            const errorData = await ingestResponse.json();
+            if (errorData.error) {
+              errorMessage += ` - ${errorData.error}`;
+            }
+            if (errorData.details) {
+              console.error("Error details:", errorData.details);
+            }
+          } catch (e) {
+            console.error("Failed to parse error response:", e);
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        // Leggi e verifica la risposta
+        const ingestData = await ingestResponse.json();
+        console.log("Ingest step completed:", ingestData);
+        
+        if (!ingestData.success) {
+          throw new Error(`Ingest operation failed: ${ingestData.error || "Unknown error"}`);
+        }
+        
+        setStatus(`Step 1/5 completed: Ingested ${ingestData.count} wallets`);
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          throw new Error("Ingest API request timed out after 3 minutes. Hyperliquid API might be experiencing delays.");
+        }
+        throw error;
+      } finally {
+        clearTimeout(timeoutId1);
+      }
 
+      // Implementazione simile per gli altri passaggi
+      // Step 2: Calculating scores
       setStatus('Step 2/5: Calculating scores...');
-      await fetch('/api/score', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
-      });
-
+      const controller2 = new AbortController();
+      const timeoutId2 = setTimeout(() => controller2.abort(), 60000);
+      
+      try {
+        const scoreResponse = await fetch('/api/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+          signal: controller2.signal
+        });
+        
+        if (!scoreResponse.ok) {
+          const errorData = await scoreResponse.json().catch(() => null);
+          throw new Error(`Score API error: ${scoreResponse.status} ${scoreResponse.statusText}${
+            errorData?.error ? ` - ${errorData.error}` : ''
+          }`);
+        }
+      } finally {
+        clearTimeout(timeoutId2);
+      }
+      
+      // Step 3: Filtering wallets
       setStatus('Step 3/5: Filtering wallets...');
-      await fetch('/api/filter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
-      });
-
+      const controller3 = new AbortController();
+      const timeoutId3 = setTimeout(() => controller3.abort(), 60000);
+      
+      try {
+        const filterResponse = await fetch('/api/filter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+          signal: controller3.signal
+        });
+        
+        if (!filterResponse.ok) {
+          const errorData = await filterResponse.json().catch(() => null);
+          throw new Error(`Filter API error: ${filterResponse.status} ${filterResponse.statusText}${
+            errorData?.error ? ` - ${errorData.error}` : ''
+          }`);
+        }
+      } finally {
+        clearTimeout(timeoutId3);
+      }
+      
+      // Step 4: Generating tags
       setStatus('Step 4/5: Generating tags...');
-      await fetch('/api/tag', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
-      });
-
+      const controller4 = new AbortController();
+      const timeoutId4 = setTimeout(() => controller4.abort(), 60000);
+      
+      try {
+        const tagResponse = await fetch('/api/tag', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+          signal: controller4.signal
+        });
+        
+        if (!tagResponse.ok) {
+          const errorData = await tagResponse.json().catch(() => null);
+          throw new Error(`Tag API error: ${tagResponse.status} ${tagResponse.statusText}${
+            errorData?.error ? ` - ${errorData.error}` : ''
+          }`);
+        }
+      } finally {
+        clearTimeout(timeoutId4);
+      }
+      
+      // Step 5: Constructing portfolio
       setStatus('Step 5/5: Constructing portfolio...');
-      const portfolioResponse = await fetch('/api/portfolio', { method: 'POST' });
-      const portfolioData = await portfolioResponse.json();
-
-      setStatus(`Full pipeline completed: ${portfolioData.count} wallets in portfolio`);
+      const controller5 = new AbortController();
+      const timeoutId5 = setTimeout(() => controller5.abort(), 120000); // 120 secondi per portfolio
+      
+      try {
+        const portfolioResponse = await fetch('/api/portfolio', { 
+          method: 'POST',
+          signal: controller5.signal
+        });
+        
+        if (!portfolioResponse.ok) {
+          const errorText = await portfolioResponse.text();
+          let errorMessage = `Portfolio API error: ${portfolioResponse.status} ${portfolioResponse.statusText}`;
+          
+          try {
+            // Prova a parsare il testo come JSON
+            const errorData = JSON.parse(errorText);
+            if (errorData.error) {
+              errorMessage += ` - ${errorData.error}`;
+            }
+          } catch (e) {
+            // Se non è JSON, usa il testo dell'errore
+            if (errorText) {
+              errorMessage += ` - ${errorText.substring(0, 100)}`;
+            }
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        const portfolioData = await portfolioResponse.json();
+        setStatus(`Full pipeline completed: ${portfolioData.count || 0} wallets in portfolio`);
+      } finally {
+        clearTimeout(timeoutId5);
+      }
     } catch (error) {
-      setStatus(`Error in pipeline: ${error instanceof Error ? error.message : String(error)}`);
+      console.error('Pipeline error:', error);
+      if (error.name === 'AbortError') {
+        setStatus(`Error in pipeline: signal timed out - L'operazione ha richiesto troppo tempo. Verifica la connessione a Hyperliquid API.`);
+      } else {
+        setStatus(`Error in pipeline: ${error instanceof Error ? error.message : String(error)}`);
+      }
     } finally {
       setLoading(false);
     }

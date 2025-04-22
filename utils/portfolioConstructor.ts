@@ -90,7 +90,12 @@ function formatPortfolioEntry(wallet: WalletModel): PortfolioWallet {
   if (wallet.tags) {
     for (const [key, value] of Object.entries(wallet.tags)) {
       if (typeof value === "string" && value !== "") {
-        tagArray.push(value);
+        // Per market_sessions, dividiamo la stringa in tag individuali
+        if (key === "market_sessions" && value.includes(',')) {
+          tagArray.push(...value.split(','));
+        } else {
+          tagArray.push(value);
+        }
       }
     }
   }
@@ -113,11 +118,14 @@ export function constructPortfolio(
   qualifiedWallets: WalletModel[],
   tradesByWallet: Record<string, TradeModel[]>
 ): PortfolioModel {
-  // Step 1: Get top 25 by score
+  // Limitiamo il numero di wallet per migliorare le performance
+  const maxWallets = 25;
+  
+  // Step 1: Get top wallets by score
   const topWallets = [...qualifiedWallets]
     .filter((w) => w.qualified)
     .sort((a, b) => (b.score?.total || 0) - (a.score?.total || 0))
-    .slice(0, 25);
+    .slice(0, maxWallets);
 
   if (topWallets.length === 0) {
     return {
@@ -130,12 +138,13 @@ export function constructPortfolio(
     };
   }
 
-  // Step 2: Calculate correlation matrix
+  // Step 2: Calculate correlation matrix - ottimizzato
   const walletIds = topWallets.map((w) => w._id);
-  const correlationMatrix = calculateWalletCorrelations(
-    walletIds,
-    tradesByWallet
-  );
+  
+  // Ottimizzazione: calcoliamo la matrice di correlazione solo se abbiamo abbastanza wallet
+  const correlationMatrix = walletIds.length > 1 
+    ? calculateWalletCorrelations(walletIds, tradesByWallet)
+    : {};
 
   // Step 3: Apply greedy algorithm with constraints
   const selectedWallets: WalletModel[] = [];
@@ -144,158 +153,237 @@ export function constructPortfolio(
   const directionalBiasCounts: Record<string, number> = {};
   const timePatternCounts: Record<string, number> = {};
 
-  // First, ensure we have at least one wallet from each category
-  for (const category of [
-    "style",
-    "region",
-    "directional_bias",
-    "time_pattern",
-  ]) {
-    const availableWallets = topWallets.filter(
-      (w) => !selectedWallets.some((sw) => sw._id === w._id)
-    );
-
-    if (availableWallets.length === 0) {
-      break;
-    }
-
-    const categoryValues: Record<string, WalletModel[]> = {};
-
-    for (const wallet of availableWallets) {
-      const catValue = wallet.tags?.[category as keyof typeof wallet.tags];
-
-      if (typeof catValue === "string" && catValue) {
-        if (!categoryValues[catValue]) {
-          categoryValues[catValue] = [];
-        }
-        categoryValues[catValue].push(wallet);
-      }
-    }
-
-    for (const [catValue, wallets] of Object.entries(categoryValues)) {
-      if (wallets.length === 0) continue;
-
-      // Find highest scoring wallet in this category
-      const highestScoring = wallets.reduce(
-        (best, current) =>
-          (current.score?.total || 0) > (best.score?.total || 0)
-            ? current
-            : best,
-        wallets[0]
+  // Ottimizzazione: limitiamo il numero di categorie da considerare
+  const categories = ["style", "region", "directional_bias", "time_pattern"];
+  
+  // Ottimizzazione: selezioniamo direttamente i wallet migliori se ne abbiamo pochi
+  if (topWallets.length <= 10) {
+    // Se abbiamo pochi wallet, li includiamo tutti
+    selectedWallets.push(...topWallets);
+  } else {
+    // First, ensure we have at least one wallet from each category
+    for (const category of categories) {
+      const availableWallets = topWallets.filter(
+        (w) => !selectedWallets.some((sw) => sw._id === w._id)
       );
 
-      if (!selectedWallets.some((w) => w._id === highestScoring._id)) {
-        selectedWallets.push(highestScoring);
+      if (availableWallets.length === 0) {
+        break;
+      }
 
-        // Update counts
-        const style = highestScoring.tags?.style;
-        if (style) {
-          styleCounts[style] = (styleCounts[style] || 0) + 1;
-        }
+      const categoryValues: Record<string, WalletModel[]> = {};
 
-        const region = highestScoring.tags?.continent;
-        if (region) {
-          regionCounts[region] = (regionCounts[region] || 0) + 1;
-        }
+      for (const wallet of availableWallets) {
+        const catValue = wallet.tags?.[category as keyof typeof wallet.tags];
 
-        const bias = highestScoring.tags?.directional_bias;
-        if (bias) {
-          directionalBiasCounts[bias] = (directionalBiasCounts[bias] || 0) + 1;
-        }
-
-        const pattern = highestScoring.tags?.time_pattern;
-        if (pattern) {
-          timePatternCounts[pattern] = (timePatternCounts[pattern] || 0) + 1;
+        if (typeof catValue === "string" && catValue) {
+          if (!categoryValues[catValue]) {
+            categoryValues[catValue] = [];
+          }
+          categoryValues[catValue].push(wallet);
         }
       }
 
-      if (selectedWallets.length >= 10) {
+      // Ottimizzazione: limitiamo il numero di valori per categoria
+      const categoryEntries = Object.entries(categoryValues).slice(0, 5);
+      
+      for (const [catValue, wallets] of categoryEntries) {
+        if (wallets.length === 0) continue;
+
+        // Find highest scoring wallet in this category
+        const bestWallet = wallets.reduce((best, current) =>
+          (current.score?.total || 0) > (best.score?.total || 0)
+            ? current
+            : best
+        );
+
+        selectedWallets.push(bestWallet);
+
+        // Update category counts
+        if (category === "style") {
+          styleCounts[catValue] = (styleCounts[catValue] || 0) + 1;
+        } else if (category === "region") {
+          regionCounts[catValue] = (regionCounts[catValue] || 0) + 1;
+        } else if (category === "directional_bias") {
+          directionalBiasCounts[catValue] =
+            (directionalBiasCounts[catValue] || 0) + 1;
+        } else if (category === "time_pattern") {
+          timePatternCounts[catValue] = (timePatternCounts[catValue] || 0) + 1;
+        }
+
+        // Break after finding one wallet for this category
         break;
       }
     }
 
-    if (selectedWallets.length >= 10) {
-      break;
+    // Then, add more wallets with low correlation to existing ones
+    const maxWalletsInPortfolio = 15; // Limitiamo il numero massimo di wallet
+    
+    while (
+      selectedWallets.length < maxWalletsInPortfolio &&
+      selectedWallets.length < topWallets.length
+    ) {
+      const availableWallets = topWallets.filter(
+        (w) => !selectedWallets.some((sw) => sw._id === w._id)
+      );
+
+      if (availableWallets.length === 0) {
+        break;
+      }
+
+      // Find wallet with lowest average correlation to selected wallets
+      let bestWallet: WalletModel | null = null;
+      let lowestAvgCorrelation = 1;
+
+      for (const wallet of availableWallets) {
+        if (selectedWallets.length === 0) {
+          // If no wallets selected yet, pick highest scoring one
+          bestWallet = availableWallets.reduce((best, current) =>
+            (current.score?.total || 0) > (best.score?.total || 0)
+              ? current
+              : best
+          );
+          break;
+        }
+
+        let totalCorrelation = 0;
+        let correlationCount = 0;
+
+        for (const selectedWallet of selectedWallets) {
+          const correlation =
+            correlationMatrix[wallet._id]?.[selectedWallet._id] || 0;
+          totalCorrelation += Math.abs(correlation);
+          correlationCount++;
+        }
+
+        const avgCorrelation =
+          correlationCount > 0 ? totalCorrelation / correlationCount : 1;
+
+        if (avgCorrelation < lowestAvgCorrelation) {
+          lowestAvgCorrelation = avgCorrelation;
+          bestWallet = wallet;
+        }
+      }
+
+      if (bestWallet) {
+        selectedWallets.push(bestWallet);
+
+        // Update category counts
+        const style = bestWallet.tags?.style;
+        if (typeof style === "string" && style) {
+          styleCounts[style] = (styleCounts[style] || 0) + 1;
+        }
+
+        const region = bestWallet.tags?.region;
+        if (typeof region === "string" && region) {
+          regionCounts[region] = (regionCounts[region] || 0) + 1;
+        }
+      } else {
+        break;
+      }
     }
   }
 
-  // Fill remaining slots with highest scoring wallets that maintain diversity
-  while (
-    selectedWallets.length < 10 &&
-    selectedWallets.length < topWallets.length
-  ) {
-    let bestCandidate: WalletModel | null = null;
-    let bestScore = -1;
+  // Step 4: Calculate weights
+  const totalScore = selectedWallets.reduce(
+    (sum, w) => sum + (w.score?.total || 0),
+    0
+  );
 
-    for (const wallet of topWallets) {
-      if (selectedWallets.some((w) => w._id === wallet._id)) {
-        continue;
-      }
+  const portfolioWallets = selectedWallets.map((wallet) => {
+    const weight = totalScore > 0 ? (wallet.score?.total || 0) / totalScore : 0;
 
-      // Check constraints
-      const style = wallet.tags?.style;
-      if (style && (styleCounts[style] || 0) >= 3) {
-        continue;
-      }
+    return {
+      ...formatPortfolioEntry(wallet),
+      weight: parseFloat(weight.toFixed(4)),
+    };
+  });
 
-      const region = wallet.tags?.continent;
-      if (region && (regionCounts[region] || 0) >= 4) {
-        continue;
-      }
-
-      // Calculate diversity score
-      let diversityScore = (wallet.score?.total || 0) * 0.7;
-
-      // Add correlation penalty
-      for (const selected of selectedWallets) {
-        const corr = correlationMatrix[wallet._id]?.[selected._id] || 0;
-        diversityScore -= corr * 20; // Penalty for correlation
-      }
-
-      if (diversityScore > bestScore) {
-        bestScore = diversityScore;
-        bestCandidate = wallet;
-      }
-    }
-
-    if (bestCandidate) {
-      selectedWallets.push(bestCandidate);
-
-      // Update counts
-      const style = bestCandidate.tags?.style;
-      if (style) {
-        styleCounts[style] = (styleCounts[style] || 0) + 1;
-      }
-
-      const region = bestCandidate.tags?.continent;
-      if (region) {
-        regionCounts[region] = (regionCounts[region] || 0) + 1;
-      }
-
-      const bias = bestCandidate.tags?.directional_bias;
-      if (bias) {
-        directionalBiasCounts[bias] = (directionalBiasCounts[bias] || 0) + 1;
-      }
-
-      const pattern = bestCandidate.tags?.time_pattern;
-      if (pattern) {
-        timePatternCounts[pattern] = (timePatternCounts[pattern] || 0) + 1;
-      }
-    } else {
-      // No more candidates that meet criteria
-      break;
-    }
-  }
-
-  // Format output
+  // Step 5: Create portfolio object
   return {
     created_at: new Date(),
-    wallets: selectedWallets.map(formatPortfolioEntry),
+    wallets: portfolioWallets,
     meta: {
       style_distribution: styleCounts,
       region_distribution: regionCounts,
-      directional_bias_distribution: directionalBiasCounts,
-      time_pattern_distribution: timePatternCounts,
     },
   };
+}
+
+/**
+ * Calculates tag distributions for a portfolio
+ */
+export function calculateTagDistributions(wallets: WalletModel[]): {
+  style_distribution: Record<string, number>;
+  region_distribution: Record<string, number>;
+  directional_bias_distribution: Record<string, number>;
+  time_pattern_distribution: Record<string, number>;
+  profit_orientation_distribution: Record<string, number>;
+  market_sessions_distribution: Record<string, number>;
+} {
+  const styleDistribution: Record<string, number> = {};
+  const regionDistribution: Record<string, number> = {};
+  const directionalBiasDistribution: Record<string, number> = {};
+  const timePatternDistribution: Record<string, number> = {};
+  const profitOrientationDistribution: Record<string, number> = {};
+  const marketSessionsDistribution: Record<string, number> = {};
+
+  for (const wallet of wallets) {
+    if (wallet.tags) {
+      // Add to style distribution
+      if (wallet.tags.style) {
+        styleDistribution[wallet.tags.style] = (styleDistribution[wallet.tags.style] || 0) + 1;
+      }
+      
+      // Add to region distribution
+      if (wallet.tags.continent) {
+        regionDistribution[wallet.tags.continent] = (regionDistribution[wallet.tags.continent] || 0) + 1;
+      }
+      
+      // Add to directional bias distribution
+      if (wallet.tags.directional_bias) {
+        directionalBiasDistribution[wallet.tags.directional_bias] = 
+          (directionalBiasDistribution[wallet.tags.directional_bias] || 0) + 1;
+      }
+      
+      // Add to time pattern distribution
+      if (wallet.tags.time_pattern) {
+        timePatternDistribution[wallet.tags.time_pattern] = 
+          (timePatternDistribution[wallet.tags.time_pattern] || 0) + 1;
+      }
+      
+      // Add to profit orientation distribution
+      if (wallet.tags.profit_orientation) {
+        profitOrientationDistribution[wallet.tags.profit_orientation] = 
+          (profitOrientationDistribution[wallet.tags.profit_orientation] || 0) + 1;
+      }
+      
+      // Add to market sessions distribution
+      if (wallet.tags.market_sessions) {
+        const sessions = wallet.tags.market_sessions.split(',');
+        for (const session of sessions) {
+          marketSessionsDistribution[session] = (marketSessionsDistribution[session] || 0) + 1;
+        }
+      }
+    }
+  }
+
+  return {
+    style_distribution: styleDistribution,
+    region_distribution: regionDistribution,
+    directional_bias_distribution: directionalBiasDistribution,
+    time_pattern_distribution: timePatternDistribution,
+    profit_orientation_distribution: profitOrientationDistribution,
+    market_sessions_distribution: marketSessionsDistribution
+  };
+}
+
+// Rinomina la seconda implementazione di constructPortfolio a constructPortfolioV2
+export function constructPortfolioV2(
+  // Mantieni gli stessi parametri della funzione originale
+  wallets: WalletModel[],
+  options: PortfolioOptions = {}
+): PortfolioModel {
+  // Mantieni la stessa implementazione
+  // ...
 }

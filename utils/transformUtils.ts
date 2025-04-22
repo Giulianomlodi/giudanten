@@ -10,45 +10,77 @@ import {
 export function transformLeaderboardData(
   leaderboardResponse: LeaderboardResponse
 ): Partial<WalletModel>[] {
-  const wallets: Partial<WalletModel>[] = [];
+  // Verifica che i dati siano validi
+  if (!leaderboardResponse || !leaderboardResponse.leaderboardRows) {
+    console.error('Invalid leaderboard data format:', leaderboardResponse);
+    return [];
+  }
 
-  for (const row of leaderboardResponse.leaderboardRows) {
-    const wallet: Partial<WalletModel> = {
-      _id: row.ethAddress,
-      lastUpdated: new Date(),
-      accountValue: parseFloat(row.accountValue),
-      displayName: row.displayName,
-      stats: {
-        roi_day: 0,
-        roi_week: 0,
-        roi_month: 0,
-        roi_allTime: 0,
-        pnl_day: 0,
-        pnl_week: 0,
-        pnl_month: 0,
-        pnl_allTime: 0,
-        volume_day: 0,
-        volume_week: 0,
-        volume_month: 0,
-        volume_allTime: 0,
-      },
-    };
+  try {
+    const wallets: Partial<WalletModel>[] = [];
 
-    // Process window performances
-    for (const [timeWindow, metrics] of row.windowPerformances) {
-      const windowKey = timeWindow as "day" | "week" | "month" | "allTime";
+    for (const row of leaderboardResponse.leaderboardRows) {
+      // Verifica che i campi essenziali esistano
+      if (!row.ethAddress) {
+        console.warn('Skipping leaderboard row without ethAddress:', row);
+        continue;
+      }
 
-      if (wallet.stats) {
-        wallet.stats[`roi_${windowKey}`] = parseFloat(metrics.roi);
-        wallet.stats[`pnl_${windowKey}`] = parseFloat(metrics.pnl);
-        wallet.stats[`volume_${windowKey}`] = parseFloat(metrics.vlm);
+      try {
+        const wallet: Partial<WalletModel> = {
+          _id: row.ethAddress,
+          lastUpdated: new Date(),
+          accountValue: parseFloat(row.accountValue || '0'),
+          displayName: row.displayName || null,
+          stats: {
+            roi_day: 0,
+            roi_week: 0,
+            roi_month: 0,
+            roi_allTime: 0,
+            pnl_day: 0,
+            pnl_week: 0,
+            pnl_month: 0,
+            pnl_allTime: 0,
+            volume_day: 0,
+            volume_week: 0,
+            volume_month: 0,
+            volume_allTime: 0,
+          },
+        };
+
+        // Process window performances
+        if (row.windowPerformances && Array.isArray(row.windowPerformances)) {
+          for (const [timeWindow, metrics] of row.windowPerformances) {
+            if (!timeWindow || !metrics) continue;
+            
+            const windowKey = timeWindow as "day" | "week" | "month" | "allTime";
+
+            if (wallet.stats) {
+              try {
+                wallet.stats[`roi_${windowKey}`] = parseFloat(metrics.roi || '0');
+                wallet.stats[`pnl_${windowKey}`] = parseFloat(metrics.pnl || '0');
+                wallet.stats[`volume_${windowKey}`] = parseFloat(metrics.vlm || '0');
+              } catch (parseError) {
+                console.warn(`Error parsing metrics for ${row.ethAddress}, window ${timeWindow}:`, parseError);
+                // Continua con i valori predefiniti
+              }
+            }
+          }
+        }
+
+        wallets.push(wallet);
+      } catch (rowError) {
+        console.error(`Error processing leaderboard row for ${row.ethAddress}:`, rowError);
+        // Continua con la prossima riga
       }
     }
 
-    wallets.push(wallet);
+    console.log(`Successfully transformed ${wallets.length} wallets from leaderboard data`);
+    return wallets;
+  } catch (error) {
+    console.error('Error transforming leaderboard data:', error);
+    return [];
   }
-
-  return wallets;
 }
 
 export function transformWalletDetails(
@@ -121,4 +153,38 @@ export function transformTradeHistory(
   }
 
   return trades;
+}
+
+// Funzione di fallback per gestire formati di dati alternativi
+export function transformAlternativeLeaderboardFormat(data: any): Partial<WalletModel>[] {
+  // Verifica che i dati siano validi
+  if (!data || !data.leaderboard || !Array.isArray(data.leaderboard)) {
+    console.error('Invalid alternative leaderboard data format:', data);
+    return [];
+  }
+  
+  try {
+    return data.leaderboard.map((entry: any) => {
+      // Verifica che l'entry sia valida
+      if (!entry || !entry.address) {
+        console.warn('Invalid leaderboard entry:', entry);
+        return null;
+      }
+      
+      return {
+        _id: entry.address,
+        displayName: entry.displayName || `Wallet_${entry.address.substring(0, 6)}`,
+        accountValue: entry.accountValue || 0,
+        lastUpdated: new Date(),
+        stats: {
+          pnl: entry.pnl || 0,
+          volume: entry.volume || 0,
+          // Altri campi statistici
+        }
+      };
+    }).filter(Boolean); // Rimuovi gli elementi null
+  } catch (error) {
+    console.error('Error transforming alternative leaderboard data:', error);
+    return [];
+  }
 }

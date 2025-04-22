@@ -119,9 +119,12 @@ export interface WalletModel {
     asset_focus?: string;
     directional_bias?: string;
     direction_percent?: string;
+    profit_orientation?: string;
+    market_sessions?: string;
   };
   positions?: WalletPosition[];
   qualified?: boolean;
+  qualification_reason?: string | string[]; // Aggiunta questa proprietà
   copy_mode?: string;
   limits?: {
     max_leverage: number;
@@ -154,6 +157,7 @@ export interface TradeModel {
   trade_value_usd: number;
 }
 
+// Portfolio model with updated distribution properties
 export interface PortfolioModel {
   _id?: string;
   created_at: Date;
@@ -163,6 +167,8 @@ export interface PortfolioModel {
     region_distribution: Record<string, number>;
     directional_bias_distribution?: Record<string, number>;
     time_pattern_distribution?: Record<string, number>;
+    profit_orientation_distribution?: Record<string, number>;
+    market_sessions_distribution?: Record<string, number>;
   };
 }
 
@@ -203,3 +209,24 @@ export interface CopyModeAssignment {
     max_position_pct: number;
   };
 }
+
+// Add these new tags to your TAGS array
+
+export const ADDITIONAL_TAGS = [
+  'efficient_long',           // Makes more profit on fewer long trades
+  'efficient_short',          // Makes more profit on fewer short trades
+  'asia_session_dominant',    // Primarily trades during Asia market hours
+  'europe_session_dominant',  // Primarily trades during European market hours
+  'volatility_trader',        // Performs well during high market volatility
+  'range_trader',             // Performs well in sideways/ranging markets
+  'trend_follower',           // Follows established market trends
+  'counter_trend',            // Takes positions against the prevailing trend
+  'breakout_specialist',      // Excels at trading breakouts from ranges
+  'consistent_sizing',        // Uses consistent position sizing
+  'adaptive_sizing',          // Adjusts position size based on conviction
+  'risk_adaptive',            // Adjusts risk parameters based on market conditions
+  'multi_timeframe',          // Shows evidence of multi-timeframe analysis
+  'technical_driven',         // Trades appear driven by technical analysis
+  'news_reactive',            // Trades correlate with major market news
+  'liquidity_hunter'          // Targets areas of high liquidity for entries/exits
+];

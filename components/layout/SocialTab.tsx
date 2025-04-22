@@ -1,17 +1,14 @@
 
-// import { FaTelegram, FaXTwitter } from "react-icons/fa6";
-import styles from "@/app/styles/menu.module.css";
-import Image from "next/image";
+"use client";
+import React from "react";
 import { FaXTwitter, FaDiscord } from "react-icons/fa6";
+import styles from "@/app/styles/menu.module.css";
 
-interface SocialTab {
-    onItemClick: () => void;
+interface SocialTabProps {
+    onItemClick?: () => void;
 }
 
-const SocialTab: React.FC<SocialTab> = () => {
-
-
-
+const SocialTab: React.FC<SocialTabProps> = ({ onItemClick = () => {} }) => {
     return (
         <nav className={styles.nav}>
             <ul className={styles.menuList}>
@@ -20,7 +17,7 @@ const SocialTab: React.FC<SocialTab> = () => {
                         href="https://x.com/hyperboops"
                         target="_blank"
                         rel="noopener noreferrer"
-
+                        onClick={onItemClick}
                     >
                         <FaXTwitter />
                     </a>
@@ -29,27 +26,10 @@ const SocialTab: React.FC<SocialTab> = () => {
                         href="https://discord.gg/eNepjYv7kS"
                         target="_blank"
                         rel="noopener noreferrer"
-
+                        onClick={onItemClick}
                     >
                         <FaDiscord />
                     </a>
-                    <a
-                        href=""
-                        target="_blank"
-                        rel="noopener noreferrer"
-
-                        className="flex items-center"
-                    >
-                        {/* <div className="w-[1em] h-[1em] relative">
-                            <Image
-                                src="/MagicEden.png"
-                                alt="Magic Eden"
-                                fill
-                                style={{ objectFit: 'contain' }}
-                            />
-                        </div> */}
-                    </a>
-
                 </li>
             </ul>
         </nav>

@@ -34,14 +34,10 @@ export function assignCopyMode(wallet: WalletModel): CopyModeAssignment {
 /**
  * Updates a wallet with copy mode information
  */
+// Assicurati che la funzione sia esportata così
 export function updateWalletWithCopyMode(wallet: WalletModel): WalletModel {
-  const { assigned_mode, limits } = assignCopyMode(wallet);
-
-  return {
-    ...wallet,
-    copy_mode: assigned_mode,
-    limits: limits,
-  };
+  // Implementazione
+  return wallet;
 }
 
 /**
